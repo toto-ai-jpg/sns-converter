@@ -49,28 +49,6 @@ function toInstagram(text) {
 }
 
 // ── Image resize ─────────────────────────────────────────
-function resizeImage(dataUrl, tw, th) {
-  return new Promise((res,rej) => {
-    const img = new Image();
-    img.onload = () => {
-      const c = document.createElement("canvas");
-      c.width=tw; c.height=th;
-      const ctx=c.getContext("2d");
-      // 黒背景
-      ctx.fillStyle="#000000";
-      ctx.fillRect(0,0,tw,th);
-      // contain: 画像全体が収まるようにスケール
-      const sr=img.naturalWidth/img.naturalHeight, dr=tw/th;
-      let dw,dh;
-      if(sr>dr){dw=tw; dh=tw/sr;}
-      else{dh=th; dw=th*sr;}
-      const dx=(tw-dw)/2, dy=(th-dh)/2;
-      ctx.drawImage(img,0,0,img.naturalWidth,img.naturalHeight,dx,dy,dw,dh);
-      res(c.toDataURL("image/jpeg",0.92));
-    };
-    img.onerror=rej; img.src=dataUrl;
-  });
-}
 
 // ── Claude API call (URL mode) ───────────────────────────
 async function fetchPostFromUrl(url) {
@@ -227,7 +205,7 @@ function CreateMode({ onNeedAd, adDone, setAdDone }) {
       setProc(true);
       const texts={x:toX(input,link),threads:toThreads(input,link),instagram:toInstagram(input)};
       const imgs={};
-      if(imgSrc) for(const[k,pf]of Object.entries(P)) imgs[k]=await resizeImage(imgSrc,pf.imgW,pf.imgH);
+      if(imgSrc) for(const k of Object.keys(P)) imgs[k]=imgSrc;
       setResults({texts,imgs,vidSrc}); setProc(false);
     })();
   },[adDone]);
