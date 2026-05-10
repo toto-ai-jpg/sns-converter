@@ -56,11 +56,16 @@ function resizeImage(dataUrl, tw, th) {
       const c = document.createElement("canvas");
       c.width=tw; c.height=th;
       const ctx=c.getContext("2d");
+      // 黒背景
+      ctx.fillStyle="#000000";
+      ctx.fillRect(0,0,tw,th);
+      // contain: 画像全体が収まるようにスケール
       const sr=img.naturalWidth/img.naturalHeight, dr=tw/th;
-      let sx,sy,sw,sh;
-      if(sr>dr){sh=img.naturalHeight;sw=sh*dr;sx=(img.naturalWidth-sw)/2;sy=0;}
-      else{sw=img.naturalWidth;sh=sw/dr;sx=0;sy=(img.naturalHeight-sh)/2;}
-      ctx.drawImage(img,sx,sy,sw,sh,0,0,tw,th);
+      let dw,dh;
+      if(sr>dr){dw=tw; dh=tw/sr;}
+      else{dh=th; dw=th*sr;}
+      const dx=(tw-dw)/2, dy=(th-dh)/2;
+      ctx.drawImage(img,0,0,img.naturalWidth,img.naturalHeight,dx,dy,dw,dh);
       res(c.toDataURL("image/jpeg",0.92));
     };
     img.onerror=rej; img.src=dataUrl;
