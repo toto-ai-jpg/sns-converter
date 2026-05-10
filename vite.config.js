@@ -1,15 +1,3 @@
-<!doctype html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SNS変換ツール</title>
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#0a0a0a" />
-    <meta name="description" content="X・Threads・Instagram用に投稿を自動変換。テキスト・画像・動画・リンクに対応。" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+export default defineConfig({ plugins: [react()] })
