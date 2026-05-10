@@ -170,22 +170,39 @@ function ResultCard({ pid, text, imgUrl, link, vidSrc }) {
 }
 
 // ── Paste Zone ────────────────────────────────────────────
-function PasteZone({ label, preview, previewType, onClear }) {
-  const [f,setF]=useState(false);
+function FileZone({ accept, icon, label, preview, previewType, onFile, onClear }) {
+  const id = "fz-" + label.replace(/\s/g,"");
+  const handleChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => onFile(ev.target.result);
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
   if (preview) return (
     <div style={{borderRadius:12,overflow:"hidden",border:"1px solid #2a2a2a"}}>
       {previewType==="image"
         ? <img src={preview} alt="" style={{width:"100%",maxHeight:150,objectFit:"cover",display:"block"}}/>
         : <video src={preview} controls style={{width:"100%",maxHeight:150,display:"block"}}/>}
-      <button onClick={onClear} style={{width:"100%",padding:8,background:"#1a1a1a",border:"none",borderTop:"1px solid #222",color:"#888",fontSize:13,cursor:"pointer"}}>✕ 削除</button>
+      <div style={{display:"flex"}}>
+        <label htmlFor={id+"-re"} style={{flex:1,padding:8,background:"#1a1a1a",borderTop:"1px solid #222",color:"#888",fontSize:13,cursor:"pointer",textAlign:"center",borderRight:"1px solid #222"}}>
+          🔄 変更
+          <input id={id+"-re"} type="file" accept={accept} onChange={handleChange} style={{display:"none"}}/>
+        </label>
+        <button onClick={onClear} style={{flex:1,padding:8,background:"#1a1a1a",border:"none",borderTop:"1px solid #222",color:"#888",fontSize:13,cursor:"pointer"}}>✕ 削除</button>
+      </div>
     </div>
   );
   return (
-    <div tabIndex={0} onFocus={()=>setF(true)} onBlur={()=>setF(false)}
-      style={{borderRadius:12,border:`2px dashed ${f?"#a259ff":"#2a2a2a"}`,background:f?"#a259ff08":"#141414",padding:"18px 16px",textAlign:"center",cursor:"text",transition:"all 0.2s",outline:"none"}}>
-      <div style={{fontSize:11,color:"#555",marginBottom:3}}>ここをタップ → 長押し → ペースト</div>
-      <div style={{fontSize:13,color:f?"#a259ff":"#666",fontWeight:f?600:400}}>{label}</div>
-    </div>
+    <label htmlFor={id} style={{display:"block",cursor:"pointer"}}>
+      <input id={id} type="file" accept={accept} onChange={handleChange} style={{display:"none"}}/>
+      <div style={{borderRadius:12,border:"2px dashed #2a2a2a",background:"#141414",padding:"20px 16px",textAlign:"center"}}>
+        <div style={{fontSize:28,marginBottom:6}}>{icon}</div>
+        <div style={{fontSize:14,color:"#ccc",fontWeight:600,marginBottom:3}}>{label}</div>
+        <div style={{fontSize:11,color:"#555"}}>タップして選択</div>
+      </div>
+    </label>
   );
 }
 
@@ -210,17 +227,7 @@ function CreateMode({ onNeedAd, adDone, setAdDone }) {
     })();
   },[adDone]);
 
-  useEffect(()=>{
-    const handler=(e)=>{
-      const items=e.clipboardData?.items; if(!items) return;
-      for(const item of items){
-        if(item.type.startsWith("image/")){const r=new FileReader();r.onload=ev=>{setImg(ev.target.result);setResults(null);};r.readAsDataURL(item.getAsFile());e.preventDefault();return;}
-        if(item.type.startsWith("video/")){const r=new FileReader();r.onload=ev=>{setVid(ev.target.result);setResults(null);};r.readAsDataURL(item.getAsFile());e.preventDefault();return;}
-      }
-    };
-    window.addEventListener("paste",handler);
-    return()=>window.removeEventListener("paste",handler);
-  },[]);
+
 
   const canGo = input.trim().length>0 && !proc;
   return (
@@ -240,7 +247,7 @@ function CreateMode({ onNeedAd, adDone, setAdDone }) {
       />
       {/* Image */}
       <div style={{fontSize:13,color:"#888",marginBottom:8,marginTop:14}}>🖼️ 画像 <span style={{color:"#555"}}>（任意・自動リサイズ）</span></div>
-      <PasteZone label="画像をコピーしてペースト" preview={imgSrc} previewType="image" onClear={()=>{setImg(null);setResults(null);}}/>
+      <FileZone accept="image/*" icon="🖼️" label="画像を選択" preview={imgSrc} previewType="image" onFile={d=>{setImg(d);setResults(null);}} onClear={()=>{setImg(null);setResults(null);}}/>
       {imgSrc&&(
         <div style={{marginTop:8,display:"flex",gap:8}}>
           {Object.entries(P).map(([k,v])=>(
@@ -255,7 +262,7 @@ function CreateMode({ onNeedAd, adDone, setAdDone }) {
       )}
       {/* Video */}
       <div style={{fontSize:13,color:"#888",marginBottom:8,marginTop:14}}>🎬 動画 <span style={{color:"#555"}}>（任意）</span></div>
-      <PasteZone label="動画をコピーしてペースト" preview={vidSrc} previewType="video" onClear={()=>{setVid(null);setResults(null);}}/>
+      <FileZone accept="video/*" icon="🎬" label="動画を選択" preview={vidSrc} previewType="video" onFile={d=>{setVid(d);setResults(null);}} onClear={()=>{setVid(null);setResults(null);}}/>
       {!vidSrc&&(
         <div style={{marginTop:8,display:"flex",gap:6}}>
           {Object.entries(P).map(([k,v])=>(
